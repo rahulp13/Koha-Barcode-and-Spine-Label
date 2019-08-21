@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+{% if form.errors %}
+  <p class="errornote">
+    Please enter the correct username and password for a staff account. Note that both fields may be case-sensitive.
+  </p>
+{% endif %}
+
+{% if next %}
+  {% if user.is_authenticated %}
+    <p class="errornote">Your account doesn't have access to this page. To proceed, please login with an account that has access.</p>
+  {% endif %}
+{% endif %}
+
+<div id="content-main">
+      <form method="post" action="{% url 'login' %}" id="login-form">
+      {% csrf_token %}
+
+    <div class="form-row">
+      <label class="required" for="id_username">Username:</label>
+      <input type="text" name="username" id="id_username" autofocus="" required="">
+    </div>
+    
+    <div class="form-row">
+      <label class="required" for="id_password">Password:</label> 
+      <input type="password" name="password" id="id_password" required="">
+    </div>
+
+    <div class="submit-row">
+      <label>&nbsp;</label><input type="submit" value="Log in">
+      <input type="hidden" name="next" value="{{ next }}" />
+    </div>
+</div>
+
+<!-- {# Assumes you setup the password_reset view in your URLconf #}
+<p><a href="{% url 'password_reset' %}">Lost password?</a></p> -->
+
+      <br class="clear">
+    </div>
+    <!-- END Content -->
+
+    <div id="footer"></div>
+</div>
+<!-- END Container -->
+
+{% endblock %}
