@@ -36,7 +36,7 @@
 	    <div id="header">
 	        {% if user.is_authenticated %}
 	          	<div id="branding">
-	            	<h1 id="site-name"><strong>Central Library, IIT Bombay</strong></h1>
+	            	<h1 id="site-name"><strong>Central Library, Your Institute</strong></h1>
 	           	</div>
 	        	<a href="{% url 'logout' %}"><strong>Logout</strong></a>
 	        {% endif %}
@@ -49,14 +49,6 @@
   	<div id="container">
   		<div id="content" class="colM">
 		    {% block content %}
-
-<!-- ##########################################################################################		    
-				<select id ="ddl" name="ddl">
-				  <option value='1' selected="selected"> Select </option>
-				  <option value='2'> Barcode Label Printing </option>
-				  <option value='3'> Spine Label Printing </option>
-				</select>
-############################################################################################-->				
 
 			<p class="errornote" id="no_data" style="display:none;" align="center"> No Data found !! <br>Kindly check whether the entered Barcode range/number is valid, whether has been Withdrawn or exists in Koha Database... </p>
 
@@ -105,19 +97,7 @@
 	<hr><br>
 
 	<div id="container">
-  		<div id="content" class="colM">
-
-
-<!--####################################################################################
-	<div id="barcode_table">
-      <table id="barcode_table_id" class="display"></table>
-	</div>
-
-	<div id="spine_table">
-      <table id="spine_table_id" class="display"></table>
-	</div>
-######################################################################################-->
-			
+  		<div id="content" class="colM">			
 			<div id="barcode_table">
       			<table id="table_id" class="display"></table>
 			</div>
@@ -128,21 +108,6 @@
 
 		document.getElementById("no_data").style.display="none";
 
-/*************************************************************************************************
-		// Check if this page is a redirection of form submission or not.
-		var selectVal = localStorage.getItem("select");
-		if (selectVal != null) {
-			// Restore the state of the form
-			document.getElementById('ddl').value = selectVal;
-			handleListChange(selectVal);
-		}
-
-		
-		// tableDataBarcode, tableDataSpine - Hold their respective Koha data
-		// tableBarcode, tableSpine - Hold their respective DataTable object
-		var tableDataBarcode, tableDataSpine, tableBarcode, tableSpine;
-*************************************************************************************************/
-		
 		// tableData - Holds the Koha Data
 		// table - Holds the DataTable object
 		var tableData, table;
@@ -155,23 +120,6 @@
 		 */
 		function saveData()
 		{
-		
-		/*******************************************************************************			
-			// Get the option value to remember the selected option on reload.
-			var  selectVal = document.getElementById('ddl').value;
-			localStorage.setItem("select", selectVal);
-
-			// Set the variables for storing Koha data based on the selected option value
-			var tableData, storageKey;
-			if (selectVal == 2) {
-				tableData = tableBarcode.rows().data();
-				storageKey = "barcode_storage";
-			} else if (selectVal == 3) {
-				tableData = tableSpine.rows().data();
-				storageKey = "spine_storage";
-			}
-		***********************************************************************************/			
-
 			// Set the variables for storing Koha data in Browser session
 			var tableData, storageKey;
 			if (typeof table !== 'undefined') {
@@ -179,23 +127,8 @@
 				storageKey = "data_storage";
 			}
 
-		/***********************************************************************************/
-
 			if (typeof tableData !== 'undefined' && tableData.length > 0) {
-
-				// Remove duplicate objects from the Koha data
-				// var obj = {};
-
-				// for (var i=0, len=tableData.length; i<len; i++)
-				//     obj[tableData[i]['barcode']] = tableData[i];
-
-				// tableData = new Array();
-				// for (var key in obj)
-				//     tableData.push(obj[key]);
-
-
 				var obj = new Array();
-
 				for (var i=0, len=tableData.length; i<len; i++)
 				    obj.push(tableData[i]);
 
@@ -203,71 +136,10 @@
 				localStorage.setItem(storageKey, JSON.stringify(obj));
 			}
 
-		/***********************************************************************************
-			// Set the hidden input value for the server to process it.
-			document.getElementById('type').value = document.getElementById('ddl').value;
-		***********************************************************************************/
-
 			// Flag to check if there is any data with the given barcode using Local Storage
 			localStorage.setItem("search", "fired");
 			return true;
 		}
-
-/*****************************************************************************************
-		/**
-		 * Hide Spine Table, Barcode Table and the Form.
-		 *\/
-	    function hideForms()
-	    {
-			document.getElementById("barcode_label").style.display="none";	
-			document.getElementById("barcode_table").style.display="none";
-			document.getElementById("spine_table").style.display="none";
-	    }
-
-	    /**
-		 * Show the Form, Barcode Table and hide Spine Table.
-		 *\/
-	    function showBarcode() 
-	    {
-	    	document.getElementById("barcode_label").style.display="block";
-	    	document.getElementById("barcode_table").style.display="block";
-	    	document.getElementById("spine_table").style.display="none";
-	    }
-
-	    /**
-		 * Show the Form, Spine Table and hide the Barcode Table.
-		 *\/
-	    function showSpine() 
-	    {
-			document.getElementById("spine_table").style.display="block";
-	    	document.getElementById("barcode_label").style.display="block";
-	    	document.getElementById("barcode_table").style.display="none";
-	    }  
-
-	    /**
-		 * Displays/hides the appropriate tables and the form based on selected option.
-		 * 
-		 * @param {number} value - The value of the selected option.
-		 *\/
-
-		function handleListChange(value)
-		{
-			if (value == 1) {
-				hideForms();
-			} else if (value == 2) {
-		    	showBarcode();
-		    } else if (value == 3) {
-		    	showSpine();
-		    }
-		} 
-
-		//Select option listener
-		$("#ddl").change(function () {
-		    handleListChange($(this).val());
-		});
-
-*****************************************************************************************/
-
 	</script>
 
 	<script type="text/javascript">
@@ -295,7 +167,7 @@
 		}
 
 		/**
-		 * Encodes the font TTF file to Base64 Encoded String. Note the encoding is Async Task
+		 * Encodes the font TTF file to Base64 Encoded String. Note that this function is Async Task
 		 * 
 		 * @param {string} title - The path to the TTF File
 		 * @returns {string}  - Base64 Encoded String
@@ -386,29 +258,11 @@
 		 * @param {string} type - Indicates the Table to be considered i.e. either Barcode Table or Spine Table
 		 */
 		async function print(type) {
-		
-			/*************************************************************************
-			var selectedData;
-			if (type == "barcode_table_id") {
-			 	selectedData = tableBarcode.rows('.selected').data();
-				if (selectedData.length == 0) {
-					selectedData = tableBarcode.rows().data();
-				}
-			} else if (type == "spine_table_id") {
-				selectedData = tableSpine.rows('.selected').data();
-				if (selectedData.length == 0) {
-					selectedData = tableSpine.rows().data();
-				}
-			}
-			***************************************************************************/
-
 			var selectedData;
 			selectedData = table.rows('.selected').data();
 			if (selectedData.length == 0) {
 				selectedData = table.rows().data();
 			}
-
-			/***************************************************************************/
 
 			// If number of objects in selectedData is odd, then print even number of rows
 			// and print last odd-numbered row separately.
@@ -647,10 +501,10 @@
 		        }
 		    }
 
-		    window.pdfMake.vfs["Calibri-Regular.ttf"] = await getBase64("fonts/Calibri-Regular.ttf");
-		    window.pdfMake.vfs["Calibri-Bold.ttf"] = await getBase64("fonts/Calibri-Bold.ttf");
-		    window.pdfMake.vfs["Calibri-Italics.ttf"] = await getBase64("fonts/Calibri-Italics.ttf");
-		    window.pdfMake.vfs["Calibri-BoldItalics.ttf"] = await getBase64("fonts/Calibri-BoldItalics.ttf");
+		    window.pdfMake.vfs["Roboto-Regular.ttf"] = await getBase64("fonts/Roboto-Regular.ttf");
+		    window.pdfMake.vfs["Roboto-Bold.ttf"] = await getBase64("fonts/Roboto-Bold.ttf");
+		    window.pdfMake.vfs["Roboto-Italics.ttf"] = await getBase64("fonts/Roboto-Italics.ttf");
+		    window.pdfMake.vfs["Roboto-BoldItalics.ttf"] = await getBase64("fonts/Roboto-BoldItalics.ttf");
 
 		    pdfMake.fonts = {
 			    // Default font should still be available
@@ -659,13 +513,6 @@
 			        'bold': 'Roboto-Medium.ttf',
 			        'italics': 'Roboto-Italic.ttf',
 			        'bolditalics': 'Roboto-Italic.ttf'
-			    },
-			    // Make sure you define all 4 components - normal, bold, italics, bolditalics - (even if they all point to the same font file)
-			    'Calibri': {
-			        'normal': 'Calibri-Regular.ttf',
-			        'bold': 'Calibri-Bold.ttf',
-			        'italics': 'Calibri-Italics.ttf',
-			        'bolditalics': 'Calibri-BoldItalics.ttf'
 			    }
 			};
 
@@ -675,7 +522,7 @@
 				pageMargins: [3,2,2,1],
 				content: data, 
 				defaultStyle: {
-			      font: 'Calibri'
+			      font: 'Roboto'
 			    }
 			};
 
@@ -687,25 +534,10 @@
 
 	<script type="text/javascript">
 		{% if data %}
-		/**************************************************************************************************
-			{% if bar %}
-				tableDataBarcode = prepareData("barcode_storage");
-				var columnHeads = prepareColHeads("bar");
-				tableBarcode = renderTable("barcode_table_id", tableDataBarcode, columnHeads, "barcode_storage");
-
-			{% elif spine %}
-				tableDataSpine = prepareData("spine_storage");			
-				var columnHeads = prepareColHeads("spine");
-				tableSpine = renderTable("spine_table_id", tableDataSpine, columnHeads, "spine_storage");
-
-			{% endif %}
-		**************************************************************************************************/
-
+		
 			tableData = prepareData("data_storage");
 			var columnHeads = prepareColHeads();
-			table = renderTable("table_id", tableData, columnHeads, "data_storage");
-
-		/*************************************************************************************************/
+			table = renderTable("table_id", tableData, columnHeads, "data_storage");		
 
 			/**
 			 * Prepares Data that is recieved from the Server and the Local Storage (if any) for rendering 
@@ -725,21 +557,7 @@
 
 					tableData = [
 						{% for items in data %}
-							{% if not forloop.first %},{% endif %}
-
-							/*****************************************************************	
-							{
-								"barcode" : "{{items.barcode}}",
-								{% if bar %}
-									"title" : "{{items.biblionumber.title}}",
-									"author" : "{{items.biblionumber.get_author}}"
-								{% elif spine %}
-									"callNum" : "{{items.get_item_callnumber}}",
-									"authorMark" : "{{items.get_author_mark}}"
-								{% endif %}
-							}
-							*****************************************************************/
-							
+							{% if not forloop.first %},{% endif %}							
 							{
 								"barcode" : "{{items.barcode}}",
 								"title" : "{{items.biblionumber.title}}",
@@ -747,9 +565,6 @@
 								"callNum" : "{{items.get_item_callnumber}}",
 								"authorMark" : "{{items.get_author_mark}}"
 							}
-
-							/****************************************************************/
-
 				    	{% endfor %}
 					];
 
@@ -758,20 +573,6 @@
 
 					{% for items in data %}
 						{% if not forloop.first %},{% endif %}			
-
-						/*********************************************************************	
-						tableData.push( {
-							"barcode" : "{{items.barcode}}",
-							{% if bar %}
-								"title" : "{{items.biblionumber.title}}",
-								"author" : "{{items.biblionumber.get_author}}"
-							{% elif spine %}
-								"callNum" : "{{items.get_item_callnumber}}",
-								"authorMark" : "{{items.get_author_mark}}"
-							{% endif %}
-						})
-						*********************************************************************/
-
 						tableData.unshift({
 							"barcode" : "{{items.barcode}}",
 							"title" : "{{items.biblionumber.title}}",
@@ -779,19 +580,7 @@
 							"callNum" : "{{items.get_item_callnumber}}",
 							"authorMark" : "{{items.get_author_mark}}"
 						})
-
-						/********************************************************************/
-
 					{% endfor %}
-
-					// Remove duplicates from the tableData, if any.
-					// var obj = {};
-					// for (var i=0, len=tableData.length; i<len; i++)
-					//     obj[tableData[i]['barcode']] = tableData[i];
-
-					// tableData = new Array();
-					// for (var key in obj)
-					//     tableData.push(obj[key]);
 				}
 
 				return tableData;
@@ -823,31 +612,14 @@
 			 * @returns {array} columns - An array of objects where each object indicates a heading of the Table
 			 */
 			function prepareColHeads() {
-				/****************************************************************************
-				var type1Head = {}, type2Head = {};
-				if (type == "bar") {
-					type1Head = {data: 'title', title: 'Title'};
-					type2Head =	{data: 'author', title: 'Author'};
-				} else if (type == "spine") {
-					type1Head = {data: 'callNum', title: 'Call Number'};
-					type2Head = {data: 'authorMark', title: 'Author Mark'};
-				}
-
-				var columns = [];
-				columns.push({data: 'barcode', title: 'Barcode'});
-				columns.push(type1Head);
-				columns.push(type2Head);
-				****************************************************************************/
-
+				
 				var columns = [];
 				columns.push({data: 'barcode', title: 'Barcode'});
 				columns.push({data: 'title', title: 'Title'});
 				columns.push({data: 'author', title: 'Author'});
 				columns.push({data: 'callNum', title: 'Call Number'});
 				columns.push({data: 'authorMark', title: 'Author Mark'});
-
-				/*************************************************************************/
-
+				
 				return columns;
 			}
 
@@ -858,28 +630,17 @@
 			 * @param {string} storageKey - The storage key of the Local Storage from which the data is to be deleted
 			 */
 			function emptyTableData(storageKey) {
-				/****************************************************************************
-				if (type == "barcode_table_id") {
-			    	tableBarcode.destroy(true);
-				    tableDataBarcode = null;
-			    } else if (type == "spine_table_id") {
-			    	tableSpine.destroy(true);
-			        tableDataSpine = null;
-			    }
-			    ****************************************************************************/
-
+				
 			    table.destroy(true);
 			    tableData = null;
 
-			    /**************************************************************************/
+                	    localStorage.removeItem(storageKey);
 
-                localStorage.removeItem(storageKey);
-
-                if ( window.history.replaceState ) {
+                	    if ( window.history.replaceState ) {
         			window.history.replaceState( null, null, window.location.href );
-    			}
+    			    }
 
-    			window.location.reload();
+    			    window.location.reload();
 			}
 
 			/**
@@ -907,11 +668,7 @@
 			    		{
 			    			text: 'Delete Table',
 			    			action: function (event, dt, node, config) {
-			    			/******************************************
-			    				emptyTableData(table_id, storageKey);
-			    			********************************************/
 			    				emptyTableData(storageKey);
-			    			/*******************************************/
 			                }
 			    		},
 			    		{
@@ -923,11 +680,7 @@
 			            {
 			            	text: 'Print Barcode',
 			            	action: function (event, dt, node, config) {
-			                /**************************************
-			                    print(table_id);
-			            	**************************************/
 			                    print("barcode_data");
-			                /************************************/
 			                }
 			            },
 			            {
