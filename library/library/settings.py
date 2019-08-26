@@ -20,7 +20,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '#zx&kzkzzi*sjwzx3j(-v=9ogefpipo76)k*tah6*u)7y9mr3$'
+SECRET_KEY = 'Enter_your_secret_key_here'
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
@@ -28,7 +28,7 @@ DEBUG = True
 
 
 # A list of all IP addresses on which the hosting will be allowed. Here, only server IP should be allowed in production
-ALLOWED_HOSTS = ["10.99.100.81", "10.196.22.116", "localhost"]
+ALLOWED_HOSTS = ["localhost"]
 
 
 # Application definition
@@ -91,11 +91,11 @@ DATABASES = {
 
     'koha_db': {
         'ENGINE': 'django.db.backends.mysql',
-        'USER': 'rahul',
-        'PASSWORD': 'rahul123',
-        'NAME': 'koha_library6',
-        'HOST': '10.99.100.72',
-        'PORT': '3306',
+        'USER': 'your_username',
+        'PASSWORD': 'your_password',
+        'NAME': 'your_database_name',
+        'HOST': 'your_database_ip_address',
+        'PORT': 'your_database_port_number',
     }
 }
 
