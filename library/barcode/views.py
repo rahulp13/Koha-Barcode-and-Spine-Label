@@ -29,42 +29,6 @@ def index(request):
     #Check whether a form is POSTed or not
     if request.method == "POST":
 
-        """ ---------------------------------------------------------------------------------------------
-        #Get the value of the selected option
-        typeReq = request.POST.get('type')
-
-        #If no other option than the default one is not selected, then proceed
-        if typeReq != '1':
-            data = None
-
-            #Check if the request was for a single barcode
-            if request.POST['barcode_num']:
-                #Get data from the Koha database where barcode value matches the requested value.
-                data = Items.objects.filter(barcode=request.POST['barcode_num'])
-
-            #Else, check if the request was for a range of barcodes
-            elif request.POST['barcode_start'] and request.POST['barcode_end']:
-                #Get data from the Koha database where the barcode value lies within the requested range of values.
-                #The barcode values from the Koha table are first converted into integer fields and then data is retrieved.
-                data = Items.objects.annotate(barcode_int=Cast('barcode', IntegerField())).filter(barcode_int__range=(request.POST['barcode_start'], request.POST['barcode_end']))
-
-            if data and len(data) != 0:
-                #Check if request is for Barcode Printing
-                if (typeReq == '2'):
-                    #set the context with the Koha data
-                    context['data'] = data
-                    #set a flag for template processing
-                    context['bar'] = 'bar'
-
-                #Else, check if request is for Spine Label Printing
-                elif (typeReq == '3'):
-                    #set the context with the Koha data
-                    context['data'] = data
-                    #set a flag for template processing
-                    context['spine'] = 'spine'
-
-        -----------------------------------------------------------------------------------------------"""
-
         data = None
 
         #Check if the request was for a single barcode
