@@ -1,0 +1,952 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>{% block title %}Central Library{% endblock %}</title>
+  {% load staticfiles %}
+
+  <link type="text/css" href="{% static 'DataTables/DataTables-1.10.18/css/jquery.dataTables.min.css' %}" rel="stylesheet">
+  <link type="text/css" href="{% static 'DataTables/Buttons-1.5.6/css/buttons.dataTables.min.css' %}" rel="stylesheet">
+  <link type="text/css" href="{% static 'DataTables/Select-1.3.0/css/select.dataTables.min.css' %}" rel="stylesheet">
+
+  <link type="text/css" href="{% static 'css/base.css' %}" rel="stylesheet">
+  <link type="text/css" href="{% static 'css/login.css' %}" rel="stylesheet">
+    
+  <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <link type="text/css" href="{% static 'css/responsive.css' %}" rel="stylesheet">
+
+  <meta charset="utf-8">
+
+
+  <script type="text/javascript" src="{% static 'jquery-3.4.1.min.js' %}"></script>  
+  <script type="text/javascript" src="{% static 'DataTables/DataTables-1.10.18/js/jquery.dataTables.min.js' %}"></script>
+  <script type="text/javascript" src="{% static 'DataTables/Select-1.3.0/js/dataTables.select.min.js' %}"></script>
+  <script type="text/javascript" src="{% static 'DataTables/Buttons-1.5.6/js/dataTables.buttons.min.js' %}"></script>
+  <script type="text/javascript" src="{% static 'DataTables/Buttons-1.5.6/js/buttons.print.min.js' %}"></script>  
+  <script type="text/javascript" src="{% static 'DataTables/pdfmake-0.1.36/pdfmake.min.js' %}"></script>
+  <script type="text/javascript" src="{% static 'DataTables/pdfmake-0.1.36/vfs_fonts.js' %}"></script>
+  <script type="text/javascript" src="{% static 'JsBarcode.code39.min.js' %}"></script>
+
+   
+</head>
+<body>
+  <!-- Header -->
+  	<Header>
+	    <div id="header">
+	        {% if user.is_authenticated %}
+	          	<div id="branding">
+	            	<h1 id="site-name"><strong>Central Library, IIT Bombay</strong></h1>
+	           	</div>
+	        	<a href="{% url 'logout' %}"><strong>Logout</strong></a>
+	        {% endif %}
+	    </div>
+    </Header>
+    <!-- END Header -->
+  <hr>
+  <main>
+
+  	<div id="container">
+  		<div id="content" class="colM">
+		    {% block content %}
+
+<!-- ##########################################################################################		    
+				<select id ="ddl" name="ddl">
+				  <option value='1' selected="selected"> Select </option>
+				  <option value='2'> Barcode Label Printing </option>
+				  <option value='3'> Spine Label Printing </option>
+				</select>
+############################################################################################-->				
+
+			<p class="errornote" id="no_data" style="display:none;" align="center"> No Data found !! <br>Kindly check whether the entered Barcode range/number is valid, whether has been Withdrawn or exists in Koha Database... </p>
+
+			<div id="content-main">
+				<form id="barcode_label" method="post" onsubmit="return saveData();">
+				{% csrf_token %}
+
+					<div id="barcode_label">
+						<div class="form-row">
+							<fieldset>
+								<legend><b>Single Barcode:</b></legend><br>
+								<label class="required" for="id_username">Barcode Number: </label>
+								<label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
+								<input id="barcode_num" type="text" pattern="[A-Z]*[0-9]+" name="barcode_num" autofocus="">
+							</fieldset>
+						</div>
+						
+						<div class="form-row">		
+							<h2 id="site-name" align="center">OR</h2>
+						</div>
+
+						<div class="form-row">
+							<fieldset>
+								<legend><b>Barcode Range:</b></legend><br>
+								<label class="required" for="id_username"> From : </label>
+								<label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
+								<input id="barcode_start" type="text" pattern="[A-Z]*[0-9]+" name="barcode_start" autofocus="">
+								<label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
+								<label class="required" for="id_username"> To :</label>
+								<label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
+								<input id="barcode_end" type="text" pattern="[A-Z]*[0-9]+" name="barcode_end" autofocus="">
+							</fieldset>
+						</div>
+
+						<br><br>
+						<div class="submit-row">
+							<input id= "type" type="hidden" value='0' name="type">
+							<input type="submit" value="search" align="center" name="search"/>
+						</div>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+
+	<hr><br>
+
+	<div id="container">
+  		<div id="content" class="colM">
+
+
+<!--####################################################################################
+	<div id="barcode_table">
+      <table id="barcode_table_id" class="display"></table>
+	</div>
+
+	<div id="spine_table">
+      <table id="spine_table_id" class="display"></table>
+	</div>
+######################################################################################-->
+			
+			<div id="barcode_table">
+      			<table id="table_id" class="display"></table>
+			</div>
+		</div>
+	</div>
+
+	<script type="text/javascript">
+
+		document.getElementById("no_data").style.display="none";
+
+/*************************************************************************************************
+		// Check if this page is a redirection of form submission or not.
+		var selectVal = localStorage.getItem("select");
+		if (selectVal != null) {
+			// Restore the state of the form
+			document.getElementById('ddl').value = selectVal;
+			handleListChange(selectVal);
+		}
+
+		
+		// tableDataBarcode, tableDataSpine - Hold their respective Koha data
+		// tableBarcode, tableSpine - Hold their respective DataTable object
+		var tableDataBarcode, tableDataSpine, tableBarcode, tableSpine;
+*************************************************************************************************/
+		
+		// tableData - Holds the Koha Data
+		// table - Holds the DataTable object
+		var tableData, table;
+
+
+		/**
+		 * Saves the selected option and the current table data, if any.
+		 * 
+		 * @returns {Boolean} - submission of the form.
+		 */
+		function saveData()
+		{
+		
+		/*******************************************************************************			
+			// Get the option value to remember the selected option on reload.
+			var  selectVal = document.getElementById('ddl').value;
+			localStorage.setItem("select", selectVal);
+
+			// Set the variables for storing Koha data based on the selected option value
+			var tableData, storageKey;
+			if (selectVal == 2) {
+				tableData = tableBarcode.rows().data();
+				storageKey = "barcode_storage";
+			} else if (selectVal == 3) {
+				tableData = tableSpine.rows().data();
+				storageKey = "spine_storage";
+			}
+		***********************************************************************************/			
+
+			// Set the variables for storing Koha data in Browser session
+			var tableData, storageKey;
+			if (typeof table !== 'undefined') {
+				tableData = table.rows().data();
+				storageKey = "data_storage";
+			}
+
+		/***********************************************************************************/
+
+			if (typeof tableData !== 'undefined' && tableData.length > 0) {
+
+				// Remove duplicate objects from the Koha data
+				// var obj = {};
+
+				// for (var i=0, len=tableData.length; i<len; i++)
+				//     obj[tableData[i]['barcode']] = tableData[i];
+
+				// tableData = new Array();
+				// for (var key in obj)
+				//     tableData.push(obj[key]);
+
+
+				var obj = new Array();
+
+				for (var i=0, len=tableData.length; i<len; i++)
+				    obj.push(tableData[i]);
+
+				// Store the Koha data to remember it on reload
+				localStorage.setItem(storageKey, JSON.stringify(obj));
+			}
+
+		/***********************************************************************************
+			// Set the hidden input value for the server to process it.
+			document.getElementById('type').value = document.getElementById('ddl').value;
+		***********************************************************************************/
+
+			// Flag to check if there is any data with the given barcode using Local Storage
+			localStorage.setItem("search", "fired");
+			return true;
+		}
+
+/*****************************************************************************************
+		/**
+		 * Hide Spine Table, Barcode Table and the Form.
+		 *\/
+	    function hideForms()
+	    {
+			document.getElementById("barcode_label").style.display="none";	
+			document.getElementById("barcode_table").style.display="none";
+			document.getElementById("spine_table").style.display="none";
+	    }
+
+	    /**
+		 * Show the Form, Barcode Table and hide Spine Table.
+		 *\/
+	    function showBarcode() 
+	    {
+	    	document.getElementById("barcode_label").style.display="block";
+	    	document.getElementById("barcode_table").style.display="block";
+	    	document.getElementById("spine_table").style.display="none";
+	    }
+
+	    /**
+		 * Show the Form, Spine Table and hide the Barcode Table.
+		 *\/
+	    function showSpine() 
+	    {
+			document.getElementById("spine_table").style.display="block";
+	    	document.getElementById("barcode_label").style.display="block";
+	    	document.getElementById("barcode_table").style.display="none";
+	    }  
+
+	    /**
+		 * Displays/hides the appropriate tables and the form based on selected option.
+		 * 
+		 * @param {number} value - The value of the selected option.
+		 *\/
+
+		function handleListChange(value)
+		{
+			if (value == 1) {
+				hideForms();
+			} else if (value == 2) {
+		    	showBarcode();
+		    } else if (value == 3) {
+		    	showSpine();
+		    }
+		} 
+
+		//Select option listener
+		$("#ddl").change(function () {
+		    handleListChange($(this).val());
+		});
+
+*****************************************************************************************/
+
+	</script>
+
+	<script type="text/javascript">
+
+		/**
+		 * Generates the Barcode for a given number.
+		 * 
+		 * @param {integer} number - The number whose barcode is to be generated.
+		 * @returns {data URL} dataURL - a representation of the image in the format specified by the 'image/png'.
+		 */
+		function genBarcode(number) {
+			// Create a canvas for barcode
+			var canvas = document.createElement('canvas');
+
+			// Create a barcode on that canvas with the given number using JSBarcode API
+			JsBarcode(canvas, number, {
+				displayValue: false
+			});
+
+			// Convert Barcode to a string format readable by makePDF API
+			dataURL = canvas.toDataURL('image/png');
+
+			canvas = null;
+			return dataURL;
+		}
+
+		/**
+		 * Encodes the font TTF file to Base64 Encoded String. Note the encoding is Async Task
+		 * 
+		 * @param {string} title - The path to the TTF File
+		 * @returns {string}  - Base64 Encoded String
+		 */
+		function getBase64(fileName) {
+			return new Promise(function(resolve, reject) {
+				$.ajax({
+			        type: "POST",
+			        url: "{% url 'encode' %}",
+			        data: {csrfmiddlewaretoken: '{{ csrf_token }}',
+			              text: fileName},   /* Passing the font name */
+			        success:  function(response) {
+			                resolve(response);
+			            }
+			    });
+			});
+		}
+
+		/**
+		 * Formats the Title of the Book for the PDF to parse "&#39;" i.e. an apostrophe.
+		 * Also, if the Title is is Upper Case, then it capitalizes those strings.
+		 * 
+		 * @param {string} title - The title of the book.
+		 * @returns {string} data/title - formatted title of the book, if required. Else, returns the input as it is.
+		 */
+		function formatString(title) {
+			if ((typeof title !== 'undefined') && (title != null) && (title != '') && /\S/.test(title)) {
+				var res = title.split("&#39;");
+				if (res.length > 1) {
+					var data = res[0];
+					for(var i=1; i<res.length; i++) {
+						data = data.concat("\'")
+						data = data.concat(res[i])
+					}
+					res = data;
+				} else {
+					res = title;
+				}
+
+				if (res === res.toUpperCase()) {
+					res = res.split(' ').map(function(word,index) {
+					    	// Upper case the first char and lowercase the rest.
+    						return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+					}).join(' ');
+				}
+
+				return res;
+			} 
+
+			return '          ';
+		}
+
+		/**
+                 * This function checks the length of the Call Number and returns the appropriate Top margin
+                 * for rest of the elements (Author Mark and Barcode number).
+                 *
+                 * @param {string} callNum - The Call Number of the book.
+  		 * @param {string} callNumNext - The Call Number of the next book.
+		 * @param {integer} index - The index of the book in the selectedData array.
+                 * @returns {array} margin - desired margin for the spine labels.
+                 */		
+		function getMargin(callNum, callNumNext, index) {
+			margin = [];
+			
+			if (index % 2 != 0) {
+				margin.push(16);
+			} else {
+				margin.push(0);
+			}
+
+			if ((callNum.length >= 22) || (callNumNext.length >= 22)) {
+				margin.push(0);
+			} else {
+				margin.push(5);
+			}
+			
+			margin.push(0);
+			margin.push(0);
+
+			return margin;
+		}
+
+		/**
+		 * Creates the printable data from the Table. If any row is selected, then only that row will be considered.
+		 * Otherwise, entire Table is considered for printing. With the printable data, it generates a PDF in another
+		 * tab where the file can be downloaded or printed directly.
+		 *
+		 * @param {string} type - Indicates the Table to be considered i.e. either Barcode Table or Spine Table
+		 */
+		async function print(type) {
+		
+			/*************************************************************************
+			var selectedData;
+			if (type == "barcode_table_id") {
+			 	selectedData = tableBarcode.rows('.selected').data();
+				if (selectedData.length == 0) {
+					selectedData = tableBarcode.rows().data();
+				}
+			} else if (type == "spine_table_id") {
+				selectedData = tableSpine.rows('.selected').data();
+				if (selectedData.length == 0) {
+					selectedData = tableSpine.rows().data();
+				}
+			}
+			***************************************************************************/
+
+			var selectedData;
+			selectedData = table.rows('.selected').data();
+			if (selectedData.length == 0) {
+				selectedData = table.rows().data();
+			}
+
+			/***************************************************************************/
+
+			// If number of objects in selectedData is odd, then print even number of rows
+			// and print last odd-numbered row separately.
+
+			var loopLimit = selectedData.length;
+			if (loopLimit % 2 != 0) {
+				loopLimit = loopLimit - 1;
+			}
+
+			var data = [], j=0;    
+			if (type == "barcode_data") {
+
+				// Generation of data for the makePDF API. For syntax and more information, visit its official documentation site
+		        while(j < loopLimit) {
+		        	data.push({
+		        		
+			        		layout: {
+									    hLineWidth: function hLineWidth(i) {return 0;},
+								        vLineWidth: function vLineWidth(i) { return 0;},
+										paddingRight: function(i, node) { return 0; },
+										paddingTop: function(i, node) { return 0; },
+										paddingBottom: function(i, node) { return 0; }
+									},
+							table:  {
+								        headerRows: 1,
+								        widths: [ '20%', '30%', '20%', '30%' ],
+								        body: [ 
+								        	[ 
+									            { text: selectedData[j].barcode, bold: true, fontSize: 12, alignment: 'center' }, 
+									            { text: formatString(selectedData[j].author), maxHeight: 15, fontSize: 8, alignment: 'center', margin: [ 0, 2, 0, 0 ] },
+									            { text: selectedData[j+1].barcode, bold: true, fontSize: 12, alignment: 'center', margin: [10, 0, 0, 0] }, 
+									            { text: formatString(selectedData[j+1].author), maxHeight: 15, fontSize: 8, alignment: 'center', margin: [ 0, 2, 0, 0 ] },
+									        ] 
+								        ]
+						      		}
+						},
+						{
+						    layout: 'noBorders',
+						    table: {
+						        headerRows: 1,
+						        widths: ['53%', '47%'],
+
+						        body: [
+						          [ 
+						          	{
+								      image: genBarcode(selectedData[j].barcode),
+								      width: 100,
+								      height: 20,
+								      margin: [12, 0, 0, 0]
+								    },
+					    			{
+								      image: genBarcode(selectedData[j+1].barcode),
+								      width: 100,
+								      height: 20,
+								      margin: [12, 0, 0, 0]
+								    }
+						          ]
+						        ]
+						      }
+						    },
+
+						    {
+						      layout: 'noBorders',
+						      table: {
+						        headerRows: 1,
+						        widths: [ '50%', '50%' ],
+
+						        body: [
+						          [ 
+						          	{text: formatString(selectedData[j].title.substring(0, 32)), fontSize: 8, alignment: 'center'},
+					    			{text: formatString(selectedData[j+1].title.substring(0, 30)), fontSize: 8, alignment: 'center', margin: [3, 0, 0, 0] }
+						          ]
+						        ]
+						      }
+						    }
+		        	);
+
+		        	j=j+2;
+		        } 
+
+		        if (selectedData.length % 2 != 0) {
+
+		        	var length = selectedData.length;
+		        	data.push({
+		        		
+			        		layout: {
+									    hLineWidth: function hLineWidth(i) {return 0;},
+								        vLineWidth: function vLineWidth(i) { return 0;},
+										paddingRight: function(i, node) { return 0; },
+										paddingTop: function(i, node) { return 0; },
+										paddingBottom: function(i, node) { return 0; }
+									},
+							table:  {
+								        headerRows: 1,
+								        widths: [ '20%', '30%'],
+								        body: [ 
+								        	[ 
+									            { text: selectedData[length-1].barcode, bold: true, fontSize: 12, alignment: 'center' }, 
+									            { text: formatString(selectedData[length-1].author), maxHeight: 15, fontSize: 8, alignment: 'center', margin: [ 0, 2, 0, 0 ] }
+									        ] 
+								        ]
+						      		}
+						},
+						{
+						    layout: 'noBorders',
+						    table: {
+						        headerRows: 1,
+						        widths: ['53%'],
+						        body: [
+						          [ 
+						          	{
+								      image: genBarcode(selectedData[length-1].barcode),
+								      width: 100,
+								      height: 20,
+								      margin: [12, 0, 0, 0]
+								    }
+						          ]
+						        ]
+						      }
+						    },
+						    {
+						      layout: 'noBorders',
+						      table: {
+						        headerRows: 1,
+						        widths: [ '50%', '50%' ],
+						        body: [
+						          [ 
+						          	{text: formatString(selectedData[length-1].title.substring(0, 32)), fontSize: 8, alignment: 'center'}
+						          ]
+						        ]
+						      }
+						    }
+		        	);
+		    	}
+
+		    } else if (type == "spine_data") {
+		    	while(j < loopLimit) {
+		        	data.push({
+		        		
+			        		layout: {
+									    hLineWidth: function hLineWidth(i) {return 0;},
+								        vLineWidth: function vLineWidth(i) { return 0;},
+										paddingRight: function(i, node) { return 0; },
+										paddingLeft: function(i, node) { return 0; },
+										paddingTop: function(i, node) { return 0; },
+										paddingBottom: function(i, node) { return 0; }
+									},
+							table:  {
+								        headerRows: 1,
+								        widths: [ '50%', '50%' ],
+								        body: [ 
+								        	[ 
+									            { text: selectedData[j].callNum, bold: true, fontSize: 12, alignment: 'center', margin:[8,0,8,0] }, 
+									            { text: selectedData[j+1].callNum, bold: true, fontSize: 12, alignment: 'center', margin: [19, 0, 3, 0] } 
+									        ] 
+								        ]
+						      		}
+						},
+						{
+						    layout: {
+									    hLineWidth: function hLineWidth(i) {return 0;},
+								        vLineWidth: function vLineWidth(i) { return 0;},
+										paddingRight: function(i, node) { return 0; },
+										paddingLeft: function(i, node) { return 0; },
+										paddingTop: function(i, node) { return 0; },
+										paddingBottom: function(i, node) { return 0; }
+									},
+						    table: {
+						        headerRows: 1,
+						        widths: ['50%', '50%'],
+						        body: [
+						          [ 
+						          	{ text: formatString(selectedData[j].authorMark), bold:true, fontSize: 12, alignment: 'center', margin: getMargin(selectedData[j].callNum, selectedData[j+1].callNum, j)},
+					    			{ text: formatString(selectedData[j+1].authorMark), bold:true, fontSize: 12, alignment: 'center', margin: getMargin(selectedData[j+1].callNum, selectedData[j].callNum, j+1) },
+						          ],
+						          [
+						          	{ text: selectedData[j].barcode, bold:true, fontSize: 12, alignment: 'center', margin: getMargin(selectedData[j].callNum, selectedData[j+1].callNum, j) }, 
+									{ text: selectedData[j+1].barcode, bold:true, fontSize: 12, alignment: 'center', margin: getMargin(selectedData[j+1].callNum, selectedData[j].callNum, j+1) }
+						          ]
+						        ]
+						    }
+						},
+		        	);
+				
+		        	j=j+2;
+		        } 
+
+
+			j = 0;
+
+		        if (selectedData.length % 2 != 0) {
+
+		        	var length = selectedData.length;
+		        	data.push({
+			        		layout: {
+									    hLineWidth: function hLineWidth(i) {return 0;},
+								        vLineWidth: function vLineWidth(i) { return 0;},
+										paddingRight: function(i, node) { return 0; },
+										paddingLeft: function(i, node) { return 0; },
+										paddingTop: function(i, node) { return 0; },
+										paddingBottom: function(i, node) { return 0; }
+									},
+							table:  {
+								        headerRows: 1,
+								        widths: [ '50%'],
+								        body: [ 
+								        	[ 
+									            { text: selectedData[length-1].callNum, bold: true, fontSize: 12, alignment: 'center', margin: [8, 0, 8, 0] }
+									        ] 
+								        ]
+						      		}
+						},
+						{
+						    layout: {
+									    hLineWidth: function hLineWidth(i) {return 0;},
+								        vLineWidth: function vLineWidth(i) { return 0;},
+										paddingRight: function(i, node) { return 0; },
+										paddingLeft: function(i, node) { return 0; },
+										paddingTop: function(i, node) { return 0; },
+										paddingBottom: function(i, node) { return 0; }
+									},
+						    table: {
+						        headerRows: 1,
+						        widths: ['50%'],
+						        body: [
+						          [ 
+						          	{ text: formatString(selectedData[length-1].authorMark), bold:true, fontSize: 12, alignment: 'center', margin: getMargin(selectedData[length-1].callNum, selectedData[length-1].callNum, 0) }
+						          ],
+						          [
+						          	{ text: selectedData[length-1].barcode, bold:true, fontSize: 12, alignment: 'center', margin: getMargin(selectedData[length-1].callNum, selectedData[length-1].callNum, 0) }
+						          ]
+						        ]
+						    }
+						},
+		        	);
+		        }
+		    }
+
+		    window.pdfMake.vfs["Calibri-Regular.ttf"] = await getBase64("fonts/Calibri-Regular.ttf");
+		    window.pdfMake.vfs["Calibri-Bold.ttf"] = await getBase64("fonts/Calibri-Bold.ttf");
+		    window.pdfMake.vfs["Calibri-Italics.ttf"] = await getBase64("fonts/Calibri-Italics.ttf");
+		    window.pdfMake.vfs["Calibri-BoldItalics.ttf"] = await getBase64("fonts/Calibri-BoldItalics.ttf");
+
+		    pdfMake.fonts = {
+			    // Default font should still be available
+			    'Roboto': {
+			        'normal': 'Roboto-Regular.ttf',
+			        'bold': 'Roboto-Medium.ttf',
+			        'italics': 'Roboto-Italic.ttf',
+			        'bolditalics': 'Roboto-Italic.ttf'
+			    },
+			    // Make sure you define all 4 components - normal, bold, italics, bolditalics - (even if they all point to the same font file)
+			    'Calibri': {
+			        'normal': 'Calibri-Regular.ttf',
+			        'bold': 'Calibri-Bold.ttf',
+			        'italics': 'Calibri-Italics.ttf',
+			        'bolditalics': 'Calibri-BoldItalics.ttf'
+			    }
+			};
+
+ 			// create JSON array for pdfMake API
+			var docDefinition = { 
+				pageSize: { width: 3.897633858 * 72, height: 0.708661 * 72 },
+				pageMargins: [3,2,2,1],
+				content: data, 
+				defaultStyle: {
+			      font: 'Calibri'
+			    }
+			};
+
+			// Create PDF and open it in Browser Tab
+			pdfMake.createPdf(docDefinition).open();
+		}
+	</script>
+
+
+	<script type="text/javascript">
+		{% if data %}
+		/**************************************************************************************************
+			{% if bar %}
+				tableDataBarcode = prepareData("barcode_storage");
+				var columnHeads = prepareColHeads("bar");
+				tableBarcode = renderTable("barcode_table_id", tableDataBarcode, columnHeads, "barcode_storage");
+
+			{% elif spine %}
+				tableDataSpine = prepareData("spine_storage");			
+				var columnHeads = prepareColHeads("spine");
+				tableSpine = renderTable("spine_table_id", tableDataSpine, columnHeads, "spine_storage");
+
+			{% endif %}
+		**************************************************************************************************/
+
+			tableData = prepareData("data_storage");
+			var columnHeads = prepareColHeads();
+			table = renderTable("table_id", tableData, columnHeads, "data_storage");
+
+		/*************************************************************************************************/
+
+			/**
+			 * Prepares Data that is recieved from the Server and the Local Storage (if any) for rendering 
+			 * on the appropriate Table 
+			 *
+			 * @param {string} type - The storage key of the Local Storage from which the local data is to be accessed
+			 * @returns {array} tableData - An array of objects where an object indicates a particular row of the Table
+			 */
+			function prepareData(storageKey) {
+
+				// Get Koha data that might have been stored earlier and this context can be a reloaded one.
+				var tableData = localStorage.getItem(storageKey);
+				tableData = JSON.parse(tableData);
+
+				// If there was no data earlier to read from Local Storage, then create a new object
+				if (tableData == null || tableData.length == 0) {
+
+					tableData = [
+						{% for items in data %}
+							{% if not forloop.first %},{% endif %}
+
+							/*****************************************************************	
+							{
+								"barcode" : "{{items.barcode}}",
+								{% if bar %}
+									"title" : "{{items.biblionumber.title}}",
+									"author" : "{{items.biblionumber.get_author}}"
+								{% elif spine %}
+									"callNum" : "{{items.get_item_callnumber}}",
+									"authorMark" : "{{items.get_author_mark}}"
+								{% endif %}
+							}
+							*****************************************************************/
+							
+							{
+								"barcode" : "{{items.barcode}}",
+								"title" : "{{items.biblionumber.title}}",
+								"author" : "{{items.biblionumber.get_author}}",
+								"callNum" : "{{items.get_item_callnumber}}",
+								"authorMark" : "{{items.get_author_mark}}"
+							}
+
+							/****************************************************************/
+
+				    	{% endfor %}
+					];
+
+				// Else, push data to the restored array of objects
+				} else {
+
+					{% for items in data %}
+						{% if not forloop.first %},{% endif %}			
+
+						/*********************************************************************	
+						tableData.push( {
+							"barcode" : "{{items.barcode}}",
+							{% if bar %}
+								"title" : "{{items.biblionumber.title}}",
+								"author" : "{{items.biblionumber.get_author}}"
+							{% elif spine %}
+								"callNum" : "{{items.get_item_callnumber}}",
+								"authorMark" : "{{items.get_author_mark}}"
+							{% endif %}
+						})
+						*********************************************************************/
+
+						tableData.unshift({
+							"barcode" : "{{items.barcode}}",
+							"title" : "{{items.biblionumber.title}}",
+							"author" : "{{items.biblionumber.get_author}}",
+							"callNum" : "{{items.get_item_callnumber}}",
+							"authorMark" : "{{items.get_author_mark}}"
+						})
+
+						/********************************************************************/
+
+					{% endfor %}
+
+					// Remove duplicates from the tableData, if any.
+					// var obj = {};
+					// for (var i=0, len=tableData.length; i<len; i++)
+					//     obj[tableData[i]['barcode']] = tableData[i];
+
+					// tableData = new Array();
+					// for (var key in obj)
+					//     tableData.push(obj[key]);
+				}
+
+				return tableData;
+			}
+
+		{% else %}
+
+			var isAvailable = localStorage.getItem("search");
+			if (isAvailable === "fired") {
+				document.getElementById("no_data").style.display="block";	
+				localStorage.removeItem("search");		
+			}
+
+			tableData = localStorage.getItem("data_storage");
+			tableData = JSON.parse(tableData);
+
+			// If there was no data earlier to read from Local Storage, then create a new object
+			if (tableData != null && tableData.length != 0) {
+				var columnHeads = prepareColHeads();
+				table = renderTable("table_id", tableData, columnHeads, "data_storage");			
+			}
+		
+		{% endif %}
+
+			/**
+			 * Prepares the Column Headings that is to be rendered on the Table dynamically
+			 * 
+			 * @param {string} type - A flag according to which the headings will be set appropriately
+			 * @returns {array} columns - An array of objects where each object indicates a heading of the Table
+			 */
+			function prepareColHeads() {
+				/****************************************************************************
+				var type1Head = {}, type2Head = {};
+				if (type == "bar") {
+					type1Head = {data: 'title', title: 'Title'};
+					type2Head =	{data: 'author', title: 'Author'};
+				} else if (type == "spine") {
+					type1Head = {data: 'callNum', title: 'Call Number'};
+					type2Head = {data: 'authorMark', title: 'Author Mark'};
+				}
+
+				var columns = [];
+				columns.push({data: 'barcode', title: 'Barcode'});
+				columns.push(type1Head);
+				columns.push(type2Head);
+				****************************************************************************/
+
+				var columns = [];
+				columns.push({data: 'barcode', title: 'Barcode'});
+				columns.push({data: 'title', title: 'Title'});
+				columns.push({data: 'author', title: 'Author'});
+				columns.push({data: 'callNum', title: 'Call Number'});
+				columns.push({data: 'authorMark', title: 'Author Mark'});
+
+				/*************************************************************************/
+
+				return columns;
+			}
+
+			/**
+			 * Clears and Destroys the Table and its Local Storage Data (not Server Data!)
+			 * 
+			 * @param {string} type - A flag according to which the Table will be destroyed appropriately
+			 * @param {string} storageKey - The storage key of the Local Storage from which the data is to be deleted
+			 */
+			function emptyTableData(storageKey) {
+				/****************************************************************************
+				if (type == "barcode_table_id") {
+			    	tableBarcode.destroy(true);
+				    tableDataBarcode = null;
+			    } else if (type == "spine_table_id") {
+			    	tableSpine.destroy(true);
+			        tableDataSpine = null;
+			    }
+			    ****************************************************************************/
+
+			    table.destroy(true);
+			    tableData = null;
+
+			    /**************************************************************************/
+
+                localStorage.removeItem(storageKey);
+
+                if ( window.history.replaceState ) {
+        			window.history.replaceState( null, null, window.location.href );
+    			}
+
+    			window.location.reload();
+			}
+
+			/**
+			 * Renders the Table using DataTable API
+			 * 
+			 * @param {string} table_id - id of HTML Table Tag where the Table is to be rendered
+			 * @param {array} tableData - An aray of objects where each object is a row of the Table to be rendered
+			 * @param {array} column_heads - An array of objects where each object is a column heading
+			 * @param {string} storageKey - A storage key of the Local Storage
+			 * @returns {DataTable object} table - DataTable Plugin object representing the Table drawn
+			 */
+			function renderTable(table_id, tableData, column_heads, storageKey) {
+				var table = $("#".concat(table_id)).DataTable( {
+			    	data: tableData,					
+					columns: column_heads,
+				    select: true,
+				    dom: 'Bfrtip',
+				    lengthMenu: [25,50,75,100],
+				    bSort: false,
+				    buttons: [
+				    	'pageLength',
+				    	'copy',
+				    	'selectAll',
+	        			'selectNone',
+			    		{
+			    			text: 'Delete Table',
+			    			action: function (event, dt, node, config) {
+			    			/******************************************
+			    				emptyTableData(table_id, storageKey);
+			    			********************************************/
+			    				emptyTableData(storageKey);
+			    			/*******************************************/
+			                }
+			    		},
+			    		{
+			    			text: 'Delete Row', 
+			    			action: function (event, dt, node, config) {
+			    				table.rows('.selected').remove().draw();
+			    			}
+			    		},
+			            {
+			            	text: 'Print Barcode',
+			            	action: function (event, dt, node, config) {
+			                /**************************************
+			                    print(table_id);
+			            	**************************************/
+			                    print("barcode_data");
+			                /************************************/
+			                }
+			            },
+			            {
+			            	text: 'Print Spine',
+			            	action: function (event, dt, node, config) {
+			                    print("spine_data");
+			                }
+			            }
+	        		],
+			    });
+
+			    return table;
+			}
+
+			localStorage.removeItem("search");
+		</script>
+
+    {% endblock %}
+  </main>
+  <hr>
+</body>
+</html>
