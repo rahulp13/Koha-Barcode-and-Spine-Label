@@ -341,10 +341,3 @@ class Items(models.Model):
         managed = False
         db_table = 'items'
         app_label = 'koha_data'
-
-
-
-"""
-select items.barcode, items.itemcallnumber, biblio.author, biblio.title from items LEFT JOIN biblio ON (items.biblionumber=biblio.biblionumber) where items.barcode = '451';
-
-"""
