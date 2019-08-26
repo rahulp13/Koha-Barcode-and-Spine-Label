@@ -1,7 +1,7 @@
 # Koha-Barcode-and-Spine-Label
 A Web-Application for searching, selecting and printing barcode and spine labels for the books, records and thesis from a given Koha database.
 
-# Installation and Requirements
+# Installation (Requirements)
 
 Following are the setup for Linux (Ubuntu) based Operating System. The software is tested and demonstrated successfully on this platform.
 
